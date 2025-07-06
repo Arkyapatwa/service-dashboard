@@ -13,48 +13,92 @@ import {
   import { Label } from "@/components/ui/label"
 
   import { Button } from "@/components/ui/button"
-  import { Plus } from "lucide-react"
-  import { addService as useAddService } from "@/hooks/useService"
+  import { addService as useAddService, updateService as useUpdateService } from "@/hooks/useService"
   import { toast } from 'sonner'
-  import { useState } from "react"
+  import { useEffect, useState } from "react"
   import { serviceType } from "@/hooks/useService"
-
+  import { useServiceModalStore } from "@/store/serviceModalStore"
   
   export function AddServiceDialog() {
+    const {
+        isOpen,
+        mode,
+        initialData,
+        close,
+      } = useServiceModalStore();
+
+    
     const [serviceName, setServiceName] = useState('')
     const [serviceType, setServiceType] = useState<serviceType>()
 
-    const mutation = useAddService()
-    const handleAddService = () => {
-        
-      const newService = {
-        name: serviceName,
-        type: serviceType,
-      }
-      console.log(newService)
-      mutation.mutate(newService, {
-        onSuccess: () => {
-          toast.success('Service added successfully');
-        },
-        onError: (error) => {
-          toast.error(`Failed to add service: ${error.message}`);
+    const addMutation = useAddService()
+    const updateMutation = useUpdateService();
+
+    useEffect(() => {
+        if (mode === "edit" && initialData) {
+          setServiceName(initialData.name);
+          setServiceType(initialData.type);
+        } else {
+          setServiceName('');
+          setServiceType(undefined);
         }
-      });
-    }
+        console.log("dialog")
+      }, [mode, initialData]);
+
+    // const handleAddService = () => {
+        
+    //   const newService = {
+    //     name: serviceName,
+    //     type: serviceType,
+    //   }
+    //   console.log(newService)
+    //   addMutation.mutate(newService, {
+    //     onSuccess: () => {
+    //       toast.success('Service added successfully');
+    //     },
+    //     onError: (error) => {
+    //       toast.error(`Failed to add service: ${error.message}`);
+    //     }
+    //   });
+    // }
+
+    const handleSave = () => {
+        const serviceData = {
+          name: serviceName,
+          type: serviceType,
+        };
+    
+        if (mode === 'edit' && initialData) {
+          updateMutation.mutate({
+            id: initialData.id,
+            service: serviceData,
+          }, mutationCallbacks);
+        } else {
+          addMutation.mutate(serviceData, mutationCallbacks);
+        }
+      };
+
+      const mutationCallbacks = {
+        onSuccess: () => {
+          toast.success(`Service ${mode === "add" ? "added" : "updated"} successfully`);
+          close();
+        },
+        onError: (error: any) => {
+          toast.error(`Failed to ${mode === "add" ? "add" : "update"} service: ${error.message}`);
+        },
+      };
+
+
 
     return (
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button 
-          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg transition-all duration-200" 
-        //   variant="outline"
-          ><Plus className="w-4 h-4 mr-2" /> Add Service </Button>
-        </DialogTrigger>
+      <Dialog open={isOpen} onOpenChange={close}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Add Service Details</DialogTitle>
+            <DialogTitle>{mode === "add" ? "Add Service" : "Edit Service"}</DialogTitle>
             <DialogDescription>
-              Fill in the details of the service you want to add.
+            {mode === "add"
+              ? "Fill in the details to create a new service."
+              : "Modify the details of the service."}
             </DialogDescription>
           </DialogHeader>
           <div className="flex items-center gap-2">
@@ -84,8 +128,8 @@ import {
           <DialogFooter className="sm:justify-start">
             <DialogClose asChild>
               <Button type="button" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg transition-all duration-200"
-              onClick={() => handleAddService()}>
-                Add
+              onClick={() => handleSave()}>
+                {mode === "add" ? "Add" : "Update"}
               </Button>
             </DialogClose>
           </DialogFooter>

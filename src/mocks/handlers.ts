@@ -48,17 +48,39 @@ export const handlers = [
     const url = new URL(request.url);
     const page = Number(url.searchParams.get('page') || '1');
     const limit = Number(url.searchParams.get('limit') || '20');
+    const statusFilter = url.searchParams.get('status');
+    const nameLikeFilter = url.searchParams.get('name_like');
+    const typeFilter = url.searchParams.get('type');
+
+    let filteredServices = [...mockServices];
+
+    if (statusFilter) {
+      filteredServices = filteredServices.filter(
+        (service) => service.status === statusFilter
+      );
+    }
+
+    if (nameLikeFilter) {
+      filteredServices = filteredServices.filter((service) =>
+        service.name.toLowerCase().includes(nameLikeFilter.toLowerCase())
+      );
+    }
+
+    if (typeFilter) {
+      filteredServices = filteredServices.filter(
+        (service) => service.type === typeFilter
+      );
+    }
 
 
-    const allEvents = mockServices;
     const start = (page - 1) * limit;
-    const paginated = allEvents.slice(start, start + limit);
+    const paginated = filteredServices.slice(start, start + limit);
 
     return HttpResponse.json({
       data: paginated,
       page,
-      totalItems: allEvents.length,
-      totalPages: Math.ceil(allEvents.length / limit),
+      totalItems: filteredServices.length,
+      totalPages: Math.ceil(filteredServices.length / limit),
     });
 
   }),

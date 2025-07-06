@@ -1,8 +1,8 @@
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData  } from '@tanstack/react-query';
 
 export type serviceType = "API" | "Database" | "Web Service" | "Microservice"
-interface Service {
+export interface Service {
   id?: string;
   name?: string;
   status?: "online" | "offline" | "degraded";
@@ -20,6 +20,12 @@ interface responseService {
   id: string
 }
 
+interface ServiceFilters {
+  status?: string;
+  name_like?: string;
+  type?: serviceType;
+}
+
 export const getService = (id: string) => {
   return useQuery({
     queryKey: ['service', id],
@@ -35,11 +41,18 @@ export const getService = (id: string) => {
   });
 };
 
-export const getServices = ( page: number, limit: number ) => {
+export const getServices = ( page: number, limit: number, filters: ServiceFilters ) => {
   return useQuery({
-    queryKey: ['services', page, limit],
+    queryKey: ['services', page, limit, filters],
     queryFn: async (): Promise<PaginatedServiceResponse> => {
-      const response = await fetch(`/api/services?page=${page}&limit=${limit}`);
+      const query = new URLSearchParams({
+        page: String(page),
+        limit: String(limit),
+        ...(filters?.status && { status: filters.status }),
+        ...(filters?.name_like && { name_like: filters.name_like }),
+       ...(filters?.type && { type: filters.type }),
+      }).toString();
+      const response = await fetch(`/api/services?${query}`);
       if (!response.ok) {
         throw new Error('Failed to fetch services');
       }
@@ -47,6 +60,7 @@ export const getServices = ( page: number, limit: number ) => {
     },
     refetchInterval: 15000,
     refetchOnWindowFocus: true,
+    placeholderData: keepPreviousData,
   });
 };
 
@@ -91,10 +105,15 @@ export const deleteService = () => {
   });
 };
 
+interface UpdatePayload {
+  id: string;
+  service: Omit<Service, 'id'>;
+}
+
 // update a service
 export const updateService = () => {
   const queryClient = useQueryClient();
-  return useMutation({
+  return useMutation<responseService, Error, UpdatePayload>({
     mutationFn: async ({ id, service }: { id: string; service: Service }): Promise<responseService> => {
       const response = await fetch(`/api/services/${id}`, {
         method: 'PUT',

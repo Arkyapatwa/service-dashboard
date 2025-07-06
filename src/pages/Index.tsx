@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Search, Filter, Plus, MoreHorizontal, Settings, Trash2 } from "lucide-react";
+import { Search, Filter, Plus, MoreHorizontal, Settings, Trash2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -10,21 +10,33 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useNavigate } from "react-router-dom";
 import { getServices, deleteService as useDeleteService } from "@/hooks/useService";
 import { AddServiceDialog } from "@/components/dialogBox";
+import { useDebounce } from 'use-debounce';
+import { useServiceModalStore } from "@/store/serviceModalStore";
 
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<any>("all");
   const navigate = useNavigate();
 
   const [page, setPage] = useState(1);
   const limit = 20;
+
+  const filters = useMemo(() => ({
+    status: statusFilter !== 'all' ? statusFilter : undefined,
+    name_like: debouncedSearchTerm || undefined,
+    type: typeFilter !== 'all' ? typeFilter : undefined,
+  }), [statusFilter, debouncedSearchTerm, typeFilter]);
   
-  const { data, isLoading, error } = getServices(page, limit);
-  const mutation = useDeleteService();
+  // fetching all services 
+  const { data, isLoading, error } = getServices(page, limit, filters);
+  // delete service
+  const deleteMutation = useDeleteService();
+  const open = useServiceModalStore((state) => state.open);
 
   const handleDelete = async (serviceId: string) => {
-    mutation.mutate(serviceId, {
+    deleteMutation.mutate(serviceId, {
       onSuccess: () => {
         toast.success('Service deleted successfully');
       },
@@ -34,18 +46,7 @@ const Index = () => {
     });
     
   };
-
-  const filteredServices = useMemo(() => {
-    const services = data?.data ?? [];
-    return services.filter(service => {
-      const matchesSearch = service.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilter === "all" || service.status === statusFilter;
-      const matchesType = typeFilter === "all" || service.type === typeFilter;
-      
-      return matchesSearch && matchesStatus && matchesType;
-    });
-  }, [data, searchTerm, statusFilter, typeFilter]);
-
+  const filteredServices = data?.data ?? [];
 
 
   const getStatusColor = (status: string) => {
@@ -93,13 +94,12 @@ const Index = () => {
               <h1 className="text-3xl font-bold text-gray-900 mb-2">Monito Corp</h1>
               <p className="text-gray-600">Monitor and manage your application services</p>
             </div>
-            {/* <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg transition-all duration-200"
-            // onClick={() => }
+            <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg transition-all duration-200"
+            onClick={() => open('add')}
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Service
-            </Button> */}
-            < AddServiceDialog />
+            </Button>
           </div>
 
           {/* Filters */}
@@ -205,9 +205,9 @@ const Index = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-48">
-                              <DropdownMenuItem className="hover:bg-blue-50 hover:text-blue-700">
-                                <Settings className="w-4 h-4 mr-2" />
-                                Configure
+                              <DropdownMenuItem className="hover:bg-blue-50 hover:text-blue-700" onClick={() => open('edit', service)}>
+                                <Pencil className="w-4 h-4 mr-2" />
+                                Update
                               </DropdownMenuItem>
                               <DropdownMenuItem className="hover:bg-red-50 hover:text-red-700" onClick={() => handleDelete(service.id)}>
                                 <Trash2 className="w-4 h-4 mr-2" />
@@ -238,6 +238,7 @@ const Index = () => {
           </CardContent>
         </Card>
       </div>
+      <AddServiceDialog />
     </div>
   );
 };

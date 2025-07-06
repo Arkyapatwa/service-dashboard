@@ -19,6 +19,7 @@ const generateMockEvents = (count: number, serviceId: string) => {
       id: `${serviceId}-event-${i}`,
       title: `Event ${i}`,
       timestamp: new Date(Date.now() - i * 1000000).toISOString(),
+      message: `Service went offline at ${new Date(Date.now() - i * 1000000).toISOString()}`
     });
   }
   return events;

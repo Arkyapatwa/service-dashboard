@@ -147,73 +147,17 @@ const ServiceDetails = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
-                    {/* <div>
-                      <p className="text-sm text-gray-600 mb-1">Version</p>
-                      <p className="font-medium">version</p>
-                    </div> */}
                     <div>
                       <p className="text-sm text-gray-600 mb-1">Type</p>
                       <Badge className={`${service.type === 'API' ? 'bg-blue-100 text-blue-800' : service.type === 'Database' ? 'bg-purple-100 text-purple-800' : service.type === 'Web Service' ? 'bg-indigo-100 text-indigo-800' : 'bg-teal-100 text-teal-800'}`}>
                         {service.type}
                       </Badge>
                     </div>
-                    {/* <div className="col-span-2">
-                      <p className="text-sm text-gray-600 mb-1">Endpoint</p>
-                      <p className="font-mono text-sm bg-gray-100 p-2 rounded">endpoint</p>
-                    </div> */}
                   </div>
                 </CardContent>
               </Card>
-
-              {/* <Card className="shadow-sm border-0 bg-white/80 backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Database className="w-5 h-5" />
-                    Dependencies
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {service.dependencies.map((dep, index) => (
-                      <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                        <CheckCircle className="w-4 h-4 text-green-500" />
-                        <span className="text-sm">{dep}</span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card> */}
             </div>
           </TabsContent>
-
-          {/* <TabsContent value="monitoring" className="space-y-6">
-            <Card className="shadow-sm border-0 bg-white/80 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle>Health Checks</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {service.healthChecks.map((check, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        {getHealthIcon(check.status)}
-                        <div>
-                          <p className="font-medium capitalize">{check.status}</p>
-                          <p className="text-sm text-gray-600">
-                            {new Date(check.timestamp).toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium">{check.responseTime}ms</p>
-                        <p className="text-sm text-gray-600">Response Time</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent> */}
 
           <TabsContent value="history" className="space-y-6">
             <Card className="shadow-sm border-0 bg-white/80 backdrop-blur-sm">

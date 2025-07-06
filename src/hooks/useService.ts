@@ -1,5 +1,5 @@
 
-import { useQuery, useMutation, useQueryClient, keepPreviousData  } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData, useInfiniteQuery  } from '@tanstack/react-query';
 
 export type serviceType = "API" | "Database" | "Web Service" | "Microservice"
 export interface Service {
@@ -135,6 +135,7 @@ interface Event {
   id: string;
   title: string;
   timestamp: string;
+  message: string;
   // add other fields returned by your API
 }
 
@@ -145,16 +146,20 @@ interface PaginatedEventsResponse {
   totalItems: number;
 }
 
-export const getServiceEvents = (serviceId: string, page: number, limit: number) => {
-  return useQuery({
-    queryKey: ['service-events', serviceId, page, limit],
-    queryFn: async (): Promise<PaginatedEventsResponse> => {
-      const response = await fetch(`/api/services/${serviceId}/events?page=${page}&limit=${limit}`);
+export const getServiceEvents = (serviceId: string, limit: number) => {
+  return useInfiniteQuery({
+    queryKey: ['service-events', serviceId],
+    queryFn: async ({ pageParam = 1 }): Promise<PaginatedEventsResponse> => {
+      const response = await fetch(`/api/services/${serviceId}/events?page=${pageParam}&limit=${limit}`);
       if (!response.ok) {
         throw new Error('Failed to fetch events');
       }
       return response.json();
     },
-    // pre: true, // optional: keeps old data while fetching new page
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const { page, totalPages } = lastPage;
+      return page < totalPages ? page + 1 : undefined;
+    },
   });
 };

@@ -1,28 +1,57 @@
 import { getServiceEvents } from "@/hooks/useService";
-import { useState } from "react";
+import { useEffect, useRef } from "react";
 
 const HistoryEventsList = ({ serviceId }: { serviceId: string }) => {
-    const [page, setPage] = useState(1);
     const limit = 20;
   
-    const { data, isLoading, isError } = getServiceEvents(serviceId, page, limit);
-  
-    if (isLoading) return <p>Loading...</p>;
-    if (isError) return <p>Error loading events.</p>;
+    const {
+        data,
+        fetchNextPage,
+        hasNextPage,
+        isLoading,
+        isFetchingNextPage,
+        error,
+      } = getServiceEvents(serviceId, limit);
+
+    const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        if (!hasNextPage) return;
+    
+        const observer = new IntersectionObserver(
+          (entries) => {
+            if (entries[0].isIntersecting) {
+              fetchNextPage();
+            }
+          },
+          { threshold: 1 }
+        );
+    
+        const current = loadMoreRef.current;
+        if (current) observer.observe(current);
+    
+        return () => {
+          if (current) observer.unobserve(current);
+        };
+      }, [hasNextPage, fetchNextPage]);
+
+      if (isLoading) return <p>Loading...</p>;
+  if (error) return <p>Error loading events</p>;
   
     return (
-      <div>
-        <ul>
-          {data?.data.map((event) => (
-            <li key={event.id}>{event.title}</li>
-          ))}
-        </ul>
+        <div className="space-y-4">
+        {data?.pages.map((page) =>
+          page.data.map((event) => (
+            <div key={event.id} className="border rounded p-2">
+              <p><strong>{event.title}</strong></p>
+              <p>{event.timestamp}</p>
+              <p>{event.message}</p>
+            </div>
+          ))
+        )}
   
-        <div className="pagination">
-          <button onClick={() => setPage((p) => Math.max(p - 1, 1))} disabled={page === 1}>Previous</button>
-          <span>Page {page}</span>
-          <button onClick={() => setPage((p) => p + 1)} disabled={page >= data.totalPages}>Next</button>
-        </div>
+        <div ref={loadMoreRef} className="h-8" />
+        {isFetchingNextPage && <p>Loading more...</p>}
       </div>
     );
   };

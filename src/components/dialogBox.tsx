@@ -45,23 +45,6 @@ import {
         console.log("dialog")
       }, [mode, initialData]);
 
-    // const handleAddService = () => {
-        
-    //   const newService = {
-    //     name: serviceName,
-    //     type: serviceType,
-    //   }
-    //   console.log(newService)
-    //   addMutation.mutate(newService, {
-    //     onSuccess: () => {
-    //       toast.success('Service added successfully');
-    //     },
-    //     onError: (error) => {
-    //       toast.error(`Failed to add service: ${error.message}`);
-    //     }
-    //   });
-    // }
-
     const handleSave = () => {
         const serviceData = {
           name: serviceName,

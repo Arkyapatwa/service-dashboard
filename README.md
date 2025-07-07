@@ -31,7 +31,7 @@ To get this project up and running on your local machine, follow these steps:
 First, clone the project from its Git repository:
 
 ```bash
-git clone (https://github.com/Arkyapatwa/service-dashboard.git)
+git clone https://github.com/Arkyapatwa/service-dashboard.git
 ```
 
 ### 2. Navigate to Project

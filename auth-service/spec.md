@@ -6,7 +6,22 @@ The auth-service manages user identity, authentication, and authorization across
 ## Responsibilities
 - Register new user accounts with securely hashed passwords
 - Authenticate existing users and issue JSON Web Tokens (JWTs)
-- Valresh_token, expires_in.
+- Validate and refresh active JWT sessions
+- Manage user profiles and roles (e.g., customer, admin)
+- Revoke tokens and manage session logout states
+
+## API Endpoints
+
+### POST /auth/register
+- **Purpose:** Registers a new user account in the system.
+- **Request:** JSON body with email, password, first_name, last_name.
+- **Response:** JSON body with user_id, email, role, created_at.
+- **Auth:** none
+
+### POST /auth/login
+- **Purpose:** Authenticates credentials and returns a secure access token.
+- **Request:** JSON body with email, password.
+- **Response:** JSON body with access_token, refresh_token, expires_in.
 - **Auth:** none
 
 ### POST /auth/refresh
